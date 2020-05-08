@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Daftar Teman</title>
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Hi, <%= nama %></h1>
+        <form action="add_friend" method="POST">
+            Friend id: <input type="text" name="friend_id">
+            <button>Add Friend</button>
+        </form>
+        <h2>Daftar Teman</h2>
+        <ul class="list-group">
+            <% friend.forEach(function(x){ %>
+           <li class="list-group-item"><%= x.username %></li> 
+           <% }); %>   
+        </ul>
+    </div>
+</body>
+</html>

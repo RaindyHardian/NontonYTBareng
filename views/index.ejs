@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">		
+		<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+		<link
+			rel="stylesheet"
+			href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css"
+			integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk="
+			crossorigin="anonymous"
+		/>
+		<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" />
+		<link rel="stylesheet" href="css/style.css">
+		<title>Nonton Bareng</title>
+	</head>
+	<body>
+		<%- include('navbar.ejs'); %>
+		<div class="container mt-3">
+			<H1>CREATE ROOM</H1>
+			<button id="getId">Generate Room ID</button>
+			<form action="/room" method="get">
+				<input type="text" name="roomId" id="textId" placeholder="Room ID" readonly> <br>
+				<!-- <input type="text" name="roomName" id="roomName" placeholder="Insert Room Name"> <br> -->
+				<input type="text" name="username" id="Username" placeholder="Insert Username">
+				<input type="submit" value="Create">
+			</form><br>
+			<H1>JOIN ROOM</H1>
+			<form action="/room" method="get">
+				<input type="text" name="roomId" id="textId" placeholder="Insert Room ID"> <br>
+				<input type="text" name="username" id="Username" placeholder="Insert Username">
+				<input type="submit" value="Create">
+			</form>
+		</div>
+		<script src="js/jquery-3.4.0.min.js"></script>
+		<script src="/socket.io/socket.io.js"></script>
+		<script>
+			const socket = io();
+			$("#getId").click(function(){
+				console.log("clicked");
+				socket.emit('genId');
+			});
+			socket.on("genId", function(id){
+				$('#textId').val(id);
+			});
+		</script>
+	</body>
+</html>

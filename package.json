@@ -1,0 +1,23 @@
+{
+  "name": "nontonytbareng",
+  "version": "1.0.0",
+  "description": "Web App to watch youtube videos remotely together",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server",
+    "dev": "nodemon server"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "ejs": "^3.0.1",
+    "express": "^4.17.1",
+    "express-session": "^1.17.0",
+    "moment": "^2.24.0",
+    "mysql2": "^2.1.0",
+    "sequelize": "^5.21.5",
+    "socket.io": "^2.3.0",
+    "uuidv4": "^6.0.7"
+  }
+}
