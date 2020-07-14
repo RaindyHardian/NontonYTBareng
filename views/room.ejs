@@ -50,7 +50,9 @@
             src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.9.2/qs.min.js"
             integrity="sha256-TDxXjkAUay70ae/QJBEpGKkpVslXaHHayklIVglFRT4="
             crossorigin="anonymous"
-        ></script>  
+		></script>  
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    
         <script>
             const socket = io();
             // Get username and room from URL
@@ -58,7 +60,26 @@
                 ignoreQueryPrefix: true
             });
             // Join chatroom
-            socket.emit('joinRoom', { username, roomId });
+			// socket.emit('joinRoom', { username, roomId });
+			$.ajax({
+				url:"/datauser",
+				type:"get",
+				// data:data,
+				dataType:"JSON",
+				success: function(data){
+					// console.log(data)
+					// userData = {
+					// 	username : data.username,
+					// 	id_share : data.id_share,
+					// 	yt_link : data.yt_link
+					// }
+					socket.emit('joinRoom', { 
+						username : data.username,
+						roomId : data.id_share 
+					})
+				}
+			});
+			
             // Get room and users
             socket.on('roomUsers', ({ room, users }) => {
             	// console.log(room);

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        var userData;
+         $.ajax({
+            url:"/datauser",
+            type:"get",
+            // data:data,
+            dataType:"JSON",
+            success: function(data){
+                // console.log(data)
+                userData = {
+                    username : data.username,
+                    id_share : data.id_share,
+                    yt_link : data.yt_link
+                }
+            }
+        });
+    </script>
+</body>
+</html>

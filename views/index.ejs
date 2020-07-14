@@ -19,15 +19,16 @@
 		<div class="container mt-3">
 			<H1>CREATE ROOM</H1>
 			<button id="getId">Generate Room ID</button>
-			<form action="/room" method="get">
-				<input type="text" name="roomId" id="textId" placeholder="Room ID" readonly> <br>
+			<form action="/postCreateRoom" method="post">
+				<input type="text" name="id_share" id="textId" placeholder="Room ID" readonly> <br>
 				<!-- <input type="text" name="roomName" id="roomName" placeholder="Insert Room Name"> <br> -->
 				<input type="text" name="username" id="Username" placeholder="Insert Username">
+				<input type="text" name="yt_link" id="ytlink" placeholder="Insert youtube link">
 				<input type="submit" value="Create">
 			</form><br>
 			<H1>JOIN ROOM</H1>
-			<form action="/room" method="get">
-				<input type="text" name="roomId" id="textId" placeholder="Insert Room ID"> <br>
+			<form action="/postJoinRoom" method="post">
+				<input type="text" name="id_share" id="textId" placeholder="Insert Room ID"> <br>
 				<input type="text" name="username" id="Username" placeholder="Insert Username">
 				<input type="submit" value="Create">
 			</form>
