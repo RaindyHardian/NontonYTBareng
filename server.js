@@ -41,18 +41,6 @@ app.get('/', (req,res)=>{
     res.render('index');
 });
 
-app.get('/dataUser',(req,res)=>{
-  var user = {
-    id_share : req.session.id_share,
-    username: req.session.username,  
-    yt_link : req.session.yt_link
-  }
-  res.json(user)
-})
-app.get('/room', (req,res)=>{
-  res.render('room');
-})
-
 app.post('/postCreateRoom',(req,res)=>{
   db.query("INSERT INTO room(id_share, yt_link) VALUES (:id_share,:yt_link);",{
     replacements:{
@@ -67,7 +55,8 @@ app.post('/postCreateRoom',(req,res)=>{
         username : req.body.username
       },
       type: db.QueryTypes.INSERT
-    }).then(()=>{
+    }).then(record=>{
+      req.session.id_user_room = record[0];
       req.session.id_share = req.body.id_share;
       req.session.username = req.body.username;  
       req.session.yt_link = req.body.yt_link;
@@ -91,12 +80,13 @@ app.post('/postJoinRoom',(req,res)=>{
           username : req.body.username
         },
         type: db.QueryTypes.INSERT
-      }).then(()=>{
+      }).then(record=>{
+        req.session.id_user_room = record[0];
         req.session.id_share = req.body.id_share;
         req.session.username = req.body.username;
         req.session.yt_link = users[0].yt_link;   
         req.session.roomStatus = 'join';
-        res.redirect('/sess')
+        res.redirect('/room')
       });
     }else{
       res.json(users)
@@ -106,9 +96,10 @@ app.post('/postJoinRoom',(req,res)=>{
 
 app.get('/sess',function(req,res){
   if(req.session.id_share!=null){
-    res.setHeader('Content-Type', 'text/html')
-    res.write('<p>views: ' + req.session.id_share+' dan '+req.session.yt_link + '</p>')
-    res.end()
+    // res.setHeader('Content-Type', 'text/html')
+    // res.write('<p>views: ' + req.session.id_share+' dan '+req.session.yt_link + '</p>')
+    // res.end()
+    res.json(req.session)
   }else{
     res.setHeader('Content-Type', 'text/html')
     res.write('No Session')
@@ -121,90 +112,253 @@ app.get('/logout',function(req,res){
     res.redirect('/sess')
   })
 });
-
-
-
-
-io.on('connection', socket=>{
-    console.log("user has connected");
+app.get('/dataUser',(req,res)=>{
+  var user = {
+    id_user_room : req.session.id_user_room,
+    id_share : req.session.id_share,
+    username: req.session.username,  
+    yt_link : req.session.yt_link
+  }
+  res.json(user)
+})
+app.get('/room', (req,res)=>{
+  io.on('connection', socket=>{
+    console.log("user from roompage has connected");
+    //generate unique id share/room id
     socket.on('genId', ()=>{
         var id = uuid();
         console.log("room id: "+id);
         socket.emit('genId', id );
     });
-    // socket.on('checkValidRoom', roomId => {
-    //     console.log(roomId);
-    //     ans = checkRoom(roomId);
-    //     console.log("ADA? "+ ans);
-    //     socket.emit('checkValidRoom', ans);
-    // });
-    socket.on('joinRoom', ({ username, roomId }) => {
-        var room = roomId;
-        console.log(username)
-        console.log(roomId)
-        const user = userJoin(socket.id, username, room);
     
-        socket.join(user.room);
-    
-        // Broadcast when a user connects
-        socket.broadcast
-          .to(user.room)
-          .emit(
-            'message',
-            'Ada user yang masuk'
-          );
-    
+    socket.on('joinRoom',({id_user_room , username,roomId})=>{
+      // update online menjadi 1 pada record user_room
+      db.query("UPDATE user_room SET online=:online,socketid=:socketid WHERE id_user_room=:id", { 
+        replacements:{
+          id: id_user_room,
+          socketid: socket.id,
+          online : 1,
+        },
+        type: db.QueryTypes.UPDATE 
+      })
+      
+      userJoin(socket.id, username, roomId)
+      // join ke socket pada id_share/roomId
+      socket.join(roomId);
+      // Broadcast when a user connects
+      socket.broadcast.to(roomId).emit(
+        'message',
+        'Ada user yang masuk'
+      );
+      // ambil semua user yang aktif pada room
+      db.query("SELECT * FROM user_room WHERE id_share=:id_share AND online=:online", { 
+        replacements:{
+          id_share: roomId,
+          online : '1',
+        },
+        type: db.QueryTypes.SELECT 
+      }).then(users=>{
         // Send users and room info
-        io.to(user.room).emit('roomUsers', {
-          room: user.room,
-          users: getRoomUsers(user.room)
-        });
+        io.to(roomId).emit('roomUsers', {
+          // room: roomId,
+          users: users
+        })
+      })  
     });
-
+    
     socket.on('seekSec', ({status, seek})=>{     
-        const user = getCurrentUser(socket.id);
+        // const user = getCurrentUser(socket.id);
+        // ambil semua user yang aktif pada room
         socket.broadcast
-          .to(user.room)
+          .to(req.session.id_share)
           .emit('seekSec',{status,seek});
     })
     socket.on('changeUrl', x=>{     
         const user = getCurrentUser(socket.id);
         socket.broadcast
-          .to(user.room)
+          .to(req.session.id_share)
           .emit('seekSec',x);
     })
     socket.on('mouseDrawing', data=>{
         // console.log(data);
         const user = getCurrentUser(socket.id);
         socket.broadcast
-          .to(user.room)
+          .to(req.session.id_share)
           .emit('mouseDrawing',data);
     })
     socket.on('clearDrawing', clearD=>{
         // console.log(data);
         const user = getCurrentUser(socket.id);
         socket.broadcast
-          .to(user.room)
+          .to(req.session.id_share)
           .emit('clearDrawing',clearD);
     })
+
     // Runs when client disconnects
     socket.on('disconnect', () => {
-        const user = userLeave(socket.id);
+      // update online menjadi 1 pada record user_room
+      db.query("UPDATE user_room SET online=:online WHERE socketid=:id", { 
+        replacements:{
+          id: socket.id,
+          online : 0,
+        },
+        type: db.QueryTypes.UPDATE 
+      })
+      // ambil semua user yang aktif pada room
+      db.query("SELECT * FROM user_room WHERE id_share=:id_share AND online=:online", { 
+        replacements:{
+          id_share: req.session.id_share,
+          online : '1',
+        },
+        type: db.QueryTypes.SELECT 
+      }).then(users=>{
+        if (users) {
+          io.to(req.session.id_share).emit(
+              'message',
+              'Ada user yg keluar'
+          );
 
-        if (user) {
-            io.to(user.room).emit(
-                'message',
-                'Ada user yg keluar'
-            );
-
-            // Send users and room info
-            io.to(user.room).emit('roomUsers', {
-                room: user.room,
-                users: getRoomUsers(user.room)
-            });
+          // Send users and room info
+          io.to(req.session.id_share).emit('roomUsers', {
+              // room: req.session.id_share,
+              users: users
+          });
         }
+      }) 
     });
-});
+  });
+  res.render('room');
+})
+
+
+
+io.on('connection', socket=>{
+    console.log("user from homepage has connected");
+    //generate unique id share/room id
+    socket.on('genId', ()=>{
+        var id = uuid();
+        console.log("room id: "+id);
+        socket.emit('genId', id );
+    });
+  });
+    
+//     socket.on('joinRoom',({id_user_room , username,roomId})=>{
+//       // update online menjadi 1 pada record user_room
+//       db.query("UPDATE user_room SET online=:online,socketid=:socketid WHERE id_user_room=:id", { 
+//         replacements:{
+//           id: id_user_room,
+//           socketid: socket.id,
+//           online : 1,
+//         },
+//         type: db.QueryTypes.UPDATE 
+//       })
+      
+//       userJoin(socket.id, username, roomId)
+//       // join ke socket pada id_share/roomId
+//       socket.join(roomId);
+//       // Broadcast when a user connects
+//       socket.broadcast.to(roomId).emit(
+//         'message',
+//         'Ada user yang masuk'
+//       );
+//       // ambil semua user yang aktif pada room
+//       db.query("SELECT * FROM user_room WHERE id_share=:id_share AND online=:online", { 
+//         replacements:{
+//           id_share: roomId,
+//           online : '1',
+//         },
+//         type: db.QueryTypes.SELECT 
+//       }).then(users=>{
+//         // Send users and room info
+//         io.to(roomId).emit('roomUsers', {
+//           // room: roomId,
+//           users: users
+//         })
+//       })  
+//     });
+    
+//     // socket.on('checkValidRoom', roomId => {
+//     //     console.log(roomId);
+//     //     ans = checkRoom(roomId);
+//     //     console.log("ADA? "+ ans);
+//     //     socket.emit('checkValidRoom', ans);
+//     // });
+
+//     // socket.on('joinRoom', ({ username, roomId }) => {
+//     //     var room = roomId;
+//     //     console.log(username)
+//     //     console.log(roomId)
+//     //     const user = userJoin(socket.id, username, room);
+    
+//     //     socket.join(user.room);
+    
+//     //     // Broadcast when a user connects
+//     //     socket.broadcast
+//     //       .to(user.room)
+//     //       .emit(
+//     //         'message',
+//     //         'Ada user yang masuk'
+//     //       );
+    
+//     //     // Send users and room info
+//     //     io.to(user.room).emit('roomUsers', {
+//     //       room: user.room,
+//     //       users: getRoomUsers(user.room)
+//     //     });
+//     // });
+
+//     socket.on('seekSec', ({status, seek})=>{     
+//         const user = getCurrentUser(socket.id);
+//         socket.broadcast
+//           .to(user.room)
+//           .emit('seekSec',{status,seek});
+//     })
+//     socket.on('changeUrl', x=>{     
+//         const user = getCurrentUser(socket.id);
+//         socket.broadcast
+//           .to(user.room)
+//           .emit('seekSec',x);
+//     })
+//     socket.on('mouseDrawing', data=>{
+//         // console.log(data);
+//         const user = getCurrentUser(socket.id);
+//         socket.broadcast
+//           .to(user.room)
+//           .emit('mouseDrawing',data);
+//     })
+//     socket.on('clearDrawing', clearD=>{
+//         // console.log(data);
+//         const user = getCurrentUser(socket.id);
+//         socket.broadcast
+//           .to(user.room)
+//           .emit('clearDrawing',clearD);
+//     })
+//     // Runs when client disconnects
+//     socket.on('disconnect', () => {
+//       // update online menjadi 1 pada record user_room
+//       db.query("UPDATE user_room SET online=:online WHERE socketid=:id", { 
+//         replacements:{
+//           id: socket.id,
+//           online : 0,
+//         },
+//         type: db.QueryTypes.UPDATE 
+//       })
+//       const user = userLeave(socket.id);
+
+//       if (user) {
+//           io.to(user.room).emit(
+//               'message',
+//               'Ada user yg keluar'
+//           );
+
+//           // Send users and room info
+//           io.to(user.room).emit('roomUsers', {
+//               room: user.room,
+//               users: getRoomUsers(user.room)
+//           });
+//       }
+//     });
+// });
 // // Run when client connect
 // io.on('connection', socket => {
 //     // KAMUS SOCKET IO : socket.on = mendapatkan, socket.emit = mengirim

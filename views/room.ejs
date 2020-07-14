@@ -51,14 +51,14 @@
             integrity="sha256-TDxXjkAUay70ae/QJBEpGKkpVslXaHHayklIVglFRT4="
             crossorigin="anonymous"
 		></script>  
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+		<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script> -->
     
         <script>
             const socket = io();
             // Get username and room from URL
-            const { roomId, username } = Qs.parse(location.search, {
-                ignoreQueryPrefix: true
-            });
+            // const { roomId, username } = Qs.parse(location.search, {
+            //     ignoreQueryPrefix: true
+            // });
             // Join chatroom
 			// socket.emit('joinRoom', { username, roomId });
 			$.ajax({
@@ -74,6 +74,7 @@
 					// 	yt_link : data.yt_link
 					// }
 					socket.emit('joinRoom', { 
+						id_user_room : data.id_user_room,
 						username : data.username,
 						roomId : data.id_share 
 					})
@@ -81,9 +82,11 @@
 			});
 			
             // Get room and users
-            socket.on('roomUsers', ({ room, users }) => {
+            // socket.on('roomUsers', ({ room, users }) => {
+			socket.on('roomUsers', ({users}) => {
             	// console.log(room);
-               	console.log(users);
+				console.log("roomUsers: ");
+				console.log(users);
 				$('#numUser').text(users.length);
 				$('#listUsers').html(function(){
 					return users.map(user => `<li>${user.username}</li>`).join('');	
