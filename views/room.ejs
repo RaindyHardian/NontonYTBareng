@@ -90,6 +90,7 @@
 			let ytVideoID;
 			socket.on('ytvideoid',({videoID})=>{
 				ytVideoID=videoID;
+				player.cueVideoById(ytVideoID);
 			})
             // Get room and users
             socket.on('roomUsers', ({users}) => {
