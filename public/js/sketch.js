@@ -2,7 +2,7 @@ var canvas;
 var pen='rgba(255,0,0, 1)';
 function setup() {
   // put setup code here
-  canvas=createCanvas(640,360);
+  canvas=createCanvas(screenwidth,screenheight);
   background('rgba(0,0,0, 0.1)');
   canvas.parent('stackFrame');
  
@@ -50,7 +50,7 @@ function setup() {
     }else{
       var newX = (data.x/data.width)*width;
       var newY = (data.y/data.height)*height;
-      circle(newX,newY,10);
+      circle(newX,newY,(10/data.width)*width);
     }
     
   });
@@ -60,6 +60,26 @@ function setup() {
   });
 }
 function mouseDragged(){
+  // var c = document.getElementById("defaultCanvas0");
+  // var ctx = c.getContext("2d");
+  // console.log(width);
+  // var imgData = ctx.getImageData(0, 0, width, height);
+  // console.log(imgData);
+  
+//   var c = document.getElementById("myCanvas");
+// var ctx = c.getContext("2d");
+// ctx.strokeRect(5, 5, 25, 15);
+// var imgData = ctx.getImageData(0, 0, 50, 150);
+// ctx.putImageData(imgData, 0, 10);
+// //ctx.putImageData(imgData, 0, 40,dirtyWidth=null,dirtyHeight=null);
+// ctx.scale(6, 6);
+// ctx.drawImage(c, 0, 0);
+  // ctx.fillStyle = "red";
+  // ctx.fillRect(10, 10, 50, 50);
+  // function copy() {
+  //   var imgData = ctx.getImageData(10, 10, 50, 50);
+  //   ctx.putImageData(imgData, 10, 20);
+  // }
   if (mouseX <= width && mouseX >= 0 && mouseY <= height && mouseY >= 0){
     var data = {
       x: mouseX,

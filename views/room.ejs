@@ -31,48 +31,54 @@
 				<button id="clear" class="btn btn-outline-danger">Clear</button>
 				<button id="close" class="btn btn-outline-dark">Close Drawing</button>
 			</div>
-			<div class="d-block mb-2">
-				Set Width: <input type="text" name="width" id="widthPlayer" style="width:50px">
-				<span>x <span id="heightPlayer"></span>pixel</span>
-				<button id="setSize" class="btn btn-outline-dark">Apply</button>
+
+			<div class="form-group row">
+				<label for="staticEmail2" class="col-sm-1 col-form-label">Width</label>
+				<div class="col-sm-3">
+					<input type="text" name="width" id="widthPlayer" class="form-control" style="width:100px; display: inline-block">
+					<span>x <span id="heightPlayer"></span>pixel</span>
+				</div>
+				<div class="col-sm-2">
+					<button id="setSize" class="btn btn-outline-dark form-control">Apply</button>
+				</div>
 			</div>
-			<div class="block" style="display: block;">
-				Video ID: <input type="text" name="youtubeUrl" id="youtubeUrl">
-				<button id="changeUrl" class="btn btn-outline-dark">Change</button>
-			</div>	
+			
+			<div class="form-group row" >
+				<label for="staticEmail2" class="col-sm-1 col-form-label">Video ID</label>
+				<div class="col-sm-8">
+					<input type="text" name="youtubeUrl" id="youtubeUrl" class="form-control" placeholder="Youtube Video ID">
+				</div>
+				<div class="col-sm-2">
+					<button id="changeUrl" class="btn btn-outline-dark">Change</button>
+				</div>
+			</div>
+		
+				
+			<div class="form-group row">
+				
+				<label for="staticEmail2" class="col-sm-1 col-form-label">Room ID</label>
+
+				<label for="staticEmail2" class="col-sm-5 col-form-label">
+					<div class="" id="roomIDShare"></div>
+				</label>
+				
+			</div>
 			<p>Users Active: <span id="numUser"></span></p>
 			<ul id="listUsers"></ul>
 		</div>
         <script src="js/jquery-3.4.0.min.js"></script>
 		<script src="/socket.io/socket.io.js"></script>
 		<script src="js/p5.min.js"></script>
-        <script
-            src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.9.2/qs.min.js"
-            integrity="sha256-TDxXjkAUay70ae/QJBEpGKkpVslXaHHayklIVglFRT4="
-            crossorigin="anonymous"
-		></script>  
-		<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script> -->
-    
+        
         <script>
             const socket = io();
-            // Get username and room from URL
-            // const { roomId, username } = Qs.parse(location.search, {
-            //     ignoreQueryPrefix: true
-            // });
-            // Join chatroom
-			// socket.emit('joinRoom', { username, roomId });
 			$.ajax({
 				url:"/datauser",
 				type:"get",
 				// data:data,
 				dataType:"JSON",
 				success: function(data){
-					// console.log(data)
-					// userData = {
-					// 	username : data.username,
-					// 	id_share : data.id_share,
-					// 	yt_link : data.yt_link
-					// }
+					$('#roomIDShare').text(data.id_share)
 					socket.emit('joinRoom', { 
 						id_user_room : data.id_user_room,
 						username : data.username,
@@ -80,19 +86,19 @@
 					})
 				}
 			});
-			
+			// get youtube video id
+			let ytVideoID;
+			socket.on('ytvideoid',({videoID})=>{
+				ytVideoID=videoID;
+			})
             // Get room and users
-            // socket.on('roomUsers', ({ room, users }) => {
-			socket.on('roomUsers', ({users}) => {
-            	// console.log(room);
-				console.log("roomUsers: ");
+            socket.on('roomUsers', ({users}) => {
+            	console.log("roomUsers: ");
 				console.log(users);
 				$('#numUser').text(users.length);
 				$('#listUsers').html(function(){
 					return users.map(user => `<li>${user.username}</li>`).join('');	
 				});   
-				// $('#listUsers').innerHTML = `
-				// ${users.map(user => `<li>${user.username}</li>`).join('')}`;
 			});
             // Message from server
             socket.on('message', message => {
@@ -107,14 +113,25 @@
 	
 			// 3. This function creates an <iframe> (and YouTube player)
 			//    after the API code downloads.
+			console.log("SCREENWIDTH: "+screen.width)
+			var screenwidth = 640;
+			var screenheight = 360;
+			if(screen.width<640){
+				screenwidth = (screen.width) - 50
+				screenheight = screenwidth/(16/9);
+			}
 			var player;
 			function onYouTubeIframeAPIReady() {
 				player = new YT.Player('ytplayer', {
-					height: '360',
-					width: '640',
+					// height: '360',
+					// width: '640',
+					height: screenheight,
+					width: screenwidth,
 					// videoId: 'rR4n-0KYeKQ',
 					// videoId: 's_L-fp8gDzY',
-					videoId: 'CTQmuq59f-g',
+					// videoId: 'CTQmuq59f-g',
+					// videoId: 'FcITAzKW3fY',
+					// videoID: ytVideoID,
 					events: {
 					'onReady': onPlayerReady,
 					'onStateChange': onPlayerStateChange
@@ -131,6 +148,8 @@
 			// 4. The API will call this function when the video player is ready.
 			function onPlayerReady(event) {
 				// event.target.playVideo();
+				event.target.cueVideoById(ytVideoID)
+				// console.log(event.target.cueVideoById(ytVideoID))
 			}
 	
 			// 5. The API calls this function when the player's state changes.
@@ -169,6 +188,7 @@
 			function stopVideo() {
 				player.stopVideo();
 			}
+			
 			function updateProgress(){
 				setInterval(function(){
 					var x = (player.getCurrentTime()/player.getDuration())*100;

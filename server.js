@@ -1,5 +1,5 @@
 const path = require('path');
-const http = require('http');
+// const http = require('http');
 const express = require('express');
 const socketio = require('socket.io');
 const Sequelize = require('sequelize')
@@ -8,9 +8,12 @@ const bodyParser = require('body-parser');
 var session = require('express-session');
 const { uuid } = require('uuidv4');
 
-const app = express();
-const server = http.createServer(app);
-const io = socketio(server);
+// const app = express();
+// const server = http.createServer(app);
+// const io = socketio(server);
+var app = require('express')();
+var http = require('http').Server(app);
+var io = require('socket.io')(http);
 const db = require('./config/database');
 const {
     userJoin,
@@ -122,16 +125,17 @@ app.get('/dataUser',(req,res)=>{
   res.json(user)
 })
 app.get('/room', (req,res)=>{
-  io.on('connection', socket=>{
-    console.log("user from roompage has connected");
-    //generate unique id share/room id
-    socket.on('genId', ()=>{
-        var id = uuid();
-        console.log("room id: "+id);
-        socket.emit('genId', id );
-    });
-    
+  io.once('connection', socket=>{
+    console.log("user from ROOMPAGE has connected");
+    // join ke socket pada id_share/roomId
+    socket.on('joinRooms',({id_user_room , username,roomId})=>{
+        console.log('JOIN ROOMS');
+        socket.join(roomId);
+    })
+
     socket.on('joinRoom',({id_user_room , username,roomId})=>{
+      socket.join(req.session.id_share);
+      console.log(username)
       // update online menjadi 1 pada record user_room
       db.query("UPDATE user_room SET online=:online,socketid=:socketid WHERE id_user_room=:id", { 
         replacements:{
@@ -141,15 +145,18 @@ app.get('/room', (req,res)=>{
         },
         type: db.QueryTypes.UPDATE 
       })
-      
-      userJoin(socket.id, username, roomId)
-      // join ke socket pada id_share/roomId
-      socket.join(roomId);
-      // Broadcast when a user connects
-      socket.broadcast.to(roomId).emit(
-        'message',
-        'Ada user yang masuk'
-      );
+      // ambil yt video id
+      db.query("SELECT * FROM room WHERE id_share=:id_share", { 
+        replacements:{
+          id_share: roomId,
+        },
+        type: db.QueryTypes.SELECT 
+      }).then(room=>{
+        // Send video id
+        io.to(roomId).emit('ytvideoid', {
+          videoID : room[0].yt_link
+        })
+      })
       // ambil semua user yang aktif pada room
       db.query("SELECT * FROM user_room WHERE id_share=:id_share AND online=:online", { 
         replacements:{
@@ -163,32 +170,26 @@ app.get('/room', (req,res)=>{
           // room: roomId,
           users: users
         })
-      })  
+      })
     });
     
     socket.on('seekSec', ({status, seek})=>{     
-        // const user = getCurrentUser(socket.id);
         // ambil semua user yang aktif pada room
         socket.broadcast
           .to(req.session.id_share)
           .emit('seekSec',{status,seek});
     })
     socket.on('changeUrl', x=>{     
-        const user = getCurrentUser(socket.id);
         socket.broadcast
           .to(req.session.id_share)
           .emit('seekSec',x);
     })
     socket.on('mouseDrawing', data=>{
-        // console.log(data);
-        const user = getCurrentUser(socket.id);
         socket.broadcast
           .to(req.session.id_share)
           .emit('mouseDrawing',data);
     })
     socket.on('clearDrawing', clearD=>{
-        // console.log(data);
-        const user = getCurrentUser(socket.id);
         socket.broadcast
           .to(req.session.id_share)
           .emit('clearDrawing',clearD);
@@ -196,7 +197,8 @@ app.get('/room', (req,res)=>{
 
     // Runs when client disconnects
     socket.on('disconnect', () => {
-      // update online menjadi 1 pada record user_room
+      console.log("DISCONNECT from room page")
+      // update online menjadi 0 pada record user_room
       db.query("UPDATE user_room SET online=:online WHERE socketid=:id", { 
         replacements:{
           id: socket.id,
@@ -213,11 +215,6 @@ app.get('/room', (req,res)=>{
         type: db.QueryTypes.SELECT 
       }).then(users=>{
         if (users) {
-          io.to(req.session.id_share).emit(
-              'message',
-              'Ada user yg keluar'
-          );
-
           // Send users and room info
           io.to(req.session.id_share).emit('roomUsers', {
               // room: req.session.id_share,
@@ -231,16 +228,19 @@ app.get('/room', (req,res)=>{
 })
 
 
+// io.on('connection', socket=>{
+//   console.log("user from homepage has connected");
+//   //generate unique id share/room id
+//   socket.on('genId', ()=>{
+//       var id = uuid();
+//       console.log("room id: "+id);
+//       socket.emit('genId', id );
+//   });
+//   socket.on('disconnect', () => {
+//     console.log("DISCONNECT from HOME page")
+//   })
+// });
 
-io.on('connection', socket=>{
-    console.log("user from homepage has connected");
-    //generate unique id share/room id
-    socket.on('genId', ()=>{
-        var id = uuid();
-        console.log("room id: "+id);
-        socket.emit('genId', id );
-    });
-  });
     
 //     socket.on('joinRoom',({id_user_room , username,roomId})=>{
 //       // update online menjadi 1 pada record user_room
@@ -381,4 +381,5 @@ io.on('connection', socket=>{
 // });
 
 const PORT = 3000 || process.env.PORT;
-server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+http.listen(PORT, () => console.log(`Server running on port ${PORT}`));
