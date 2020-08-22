@@ -1,12 +1,14 @@
 const path = require('path');
 // const http = require('http');
 const express = require('express');
-const socketio = require('socket.io');
-const Sequelize = require('sequelize')
+// const socketio = require('socket.io');
+// const Sequelize = require('sequelize')
 const ejs = require('ejs');
 const bodyParser = require('body-parser');
 var session = require('express-session');
-const { uuid } = require('uuidv4');
+const dotenv = require('dotenv');
+dotenv.config();
+// const { uuid } = require('uuidv4');
 
 // const app = express();
 // const server = http.createServer(app);
@@ -15,13 +17,13 @@ var app = require('express')();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 const db = require('./config/database');
-const {
-    userJoin,
-    getCurrentUser,
-    userLeave,
-    getRoomUsers,
-    checkRoom
-  } = require('./utils/users');
+// const {
+//     userJoin,
+//     getCurrentUser,
+//     userLeave,
+//     getRoomUsers,
+//     checkRoom
+//   } = require('./utils/users');
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false }))
 // parse application/json
@@ -144,31 +146,32 @@ app.get('/room', (req,res)=>{
           online : 1,
         },
         type: db.QueryTypes.UPDATE 
-      })
-      // ambil yt video id
-      db.query("SELECT * FROM room WHERE id_share=:id_share", { 
-        replacements:{
-          id_share: roomId,
-        },
-        type: db.QueryTypes.SELECT 
-      }).then(room=>{
-        // Send video id
-        io.to(roomId).emit('ytvideoid', {
-          videoID : room[0].yt_link
+      }).then(()=>{
+        // ambil yt video id
+        db.query("SELECT * FROM room WHERE id_share=:id_share", { 
+          replacements:{
+            id_share: roomId,
+          },
+          type: db.QueryTypes.SELECT 
+        }).then(room=>{
+          // Send video id
+          io.to(roomId).emit('ytvideoid', {
+            videoID : room[0].yt_link
+          })
         })
-      })
-      // ambil semua user yang aktif pada room
-      db.query("SELECT * FROM user_room WHERE id_share=:id_share AND online=:online", { 
-        replacements:{
-          id_share: roomId,
-          online : '1',
-        },
-        type: db.QueryTypes.SELECT 
-      }).then(users=>{
-        // Send users and room info
-        io.to(roomId).emit('roomUsers', {
-          // room: roomId,
-          users: users
+        // ambil semua user yang aktif pada room
+        db.query("SELECT * FROM user_room WHERE id_share=:id_share AND online=:online", { 
+          replacements:{
+            id_share: roomId,
+            online : '1',
+          },
+          type: db.QueryTypes.SELECT 
+        }).then(users=>{
+          // Send users and room info
+          io.to(roomId).emit('roomUsers', {
+            // room: roomId,
+            users: users
+          })
         })
       })
     });
@@ -180,9 +183,18 @@ app.get('/room', (req,res)=>{
           .emit('seekSec',{status,seek});
     })
     socket.on('changeUrl', x=>{     
-        socket.broadcast
+        db.query("UPDATE room SET yt_link=:yt_link WHERE id_share=:id_share", { 
+          replacements:{
+            id_share: req.session.id_share,
+            yt_link: x,
+            online : 1,
+          },
+          type: db.QueryTypes.UPDATE 
+        }).then(()=>{
+          socket.broadcast
           .to(req.session.id_share)
-          .emit('seekSec',x);
+          .emit('changeUrl',x);
+        })    
     })
     socket.on('mouseDrawing', data=>{
         socket.broadcast
@@ -205,23 +217,24 @@ app.get('/room', (req,res)=>{
           online : 0,
         },
         type: db.QueryTypes.UPDATE 
+      }).then(()=>{
+        // ambil semua user yang aktif pada room
+        db.query("SELECT * FROM user_room WHERE id_share=:id_share AND online=:online", { 
+          replacements:{
+            id_share: req.session.id_share,
+            online : '1',
+          },
+          type: db.QueryTypes.SELECT 
+        }).then(users=>{
+          if (users) {
+            // Send users and room info
+            io.to(req.session.id_share).emit('roomUsers', {
+                // room: req.session.id_share,
+                users: users
+            });
+          }
+        })
       })
-      // ambil semua user yang aktif pada room
-      db.query("SELECT * FROM user_room WHERE id_share=:id_share AND online=:online", { 
-        replacements:{
-          id_share: req.session.id_share,
-          online : '1',
-        },
-        type: db.QueryTypes.SELECT 
-      }).then(users=>{
-        if (users) {
-          // Send users and room info
-          io.to(req.session.id_share).emit('roomUsers', {
-              // room: req.session.id_share,
-              users: users
-          });
-        }
-      }) 
     });
   });
   res.render('room');
@@ -380,6 +393,7 @@ app.get('/room', (req,res)=>{
 //     });
 // });
 
-const PORT = 3000 || process.env.PORT;
+
+const PORT = process.env.PORT || 3000 ;
 // server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 http.listen(PORT, () => console.log(`Server running on port ${PORT}`));

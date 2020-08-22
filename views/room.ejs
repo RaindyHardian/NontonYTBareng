@@ -93,8 +93,8 @@
 			})
             // Get room and users
             socket.on('roomUsers', ({users}) => {
-            	console.log("roomUsers: ");
-				console.log(users);
+            	// console.log("roomUsers: ");
+				// console.log(users);
 				$('#numUser').text(users.length);
 				$('#listUsers').html(function(){
 					return users.map(user => `<li>${user.username}</li>`).join('');	
@@ -113,7 +113,7 @@
 	
 			// 3. This function creates an <iframe> (and YouTube player)
 			//    after the API code downloads.
-			console.log("SCREENWIDTH: "+screen.width)
+			// console.log("SCREENWIDTH: "+screen.width)
 			var screenwidth = 640;
 			var screenheight = 360;
 			if(screen.width<640){
@@ -162,16 +162,16 @@
 			function sendClick(playerStatus){
 				if (playerStatus == -1) {
 					// color = "#37474F"; // unstarted = gray
-					console.log("unstarted");
+					// console.log("unstarted");
 				} else if (playerStatus == 0) {
 					// color = "#FFFF00"; // ended = yellow
 				} else if (playerStatus == 1) {
 					// color = "#33691E"; // playing = green
-					console.log("start");
+					// console.log("start");
 					updateProgress();
 				} else if (playerStatus == 2) {
 					// color = "#DD2C00"; // paused = red
-					console.log("Pause");
+					// console.log("Pause");
 				} else if (playerStatus == 3) {
 					// color = "#AA00FF"; // buffering = purple
 				} else if (playerStatus == 5) {
@@ -179,10 +179,10 @@
 				}
 			}
 			function getTime(){
-				console.log(player.getCurrentTime());
+				// console.log(player.getCurrentTime());
 			}
 			function lompatKe(){
-				console.log("Lanjut");
+				// console.log("Lanjut");
 				player.seekTo(player.getCurrentTime(), false);
 			}
 			function stopVideo() {
@@ -201,14 +201,14 @@
 				var posX = e.pageX - $(this).offset().left;
 				var elWidth = $(this).width();
 				var seek = (posX/elWidth)*player.getDuration();
-				console.log(seek +"s");
+				// console.log(seek +"s");
                 player.seekTo(seek,true);
                 var status = player.getPlayerState();
                 socket.emit('seekSec', {status, seek});
             });
             socket.on('seekSec', ({status, seek})=>{
                 player.seekTo(seek,true);
-                console.log("STATUSNYA "+status);
+                // console.log("STATUSNYA "+status);
                 if(status == 1){
                     player.playVideo();
                 }else{
