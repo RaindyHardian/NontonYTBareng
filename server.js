@@ -175,7 +175,15 @@ app.get('/room', (req,res)=>{
         })
       })
     });
-    
+
+    socket.on('chatMessage',(data)=>{
+      // console.log(username+' '+message)
+      console.log(data)
+      io
+      .to(req.session.id_share)
+      .emit('chatMessage',{username:data.username,message:data.message});
+    })
+
     socket.on('seekSec', ({status, seek})=>{     
         // ambil semua user yang aktif pada room
         socket.broadcast

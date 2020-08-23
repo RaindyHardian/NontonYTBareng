@@ -51,3 +51,139 @@
   background-color: rgb(228, 228, 81);
   /* display: inline;  */
 }
+
+.roomMain{
+  /* margin-right: 20px; */
+  width: 80%;
+  display: inline-block;
+}
+.roomChat{
+  border: 1px solid black;
+  display: inline-block;
+  position: fixed; 
+  top: 0px;
+  width: 20%;
+  height: 100%;
+  background: white;
+}
+
+.formChat { 
+  display: flex;
+  flex-direction: row;
+  background: rgb(129, 129, 129); 
+  /* padding: 3px;  */
+  position: fixed; 
+  bottom: 0;
+  width: 100% 
+}
+.formChat input { 
+  /* border: 1 ;  */
+  padding: 10px 10px;
+  width: 15%;   
+}
+.formChat button { 
+  background: rgb(209, 49, 124); 
+  border: 1px solid black;  
+  width: 4%;
+  color: white;
+}
+.messagesContainer{
+  overflow-y: auto;
+  height: 95%;
+}
+#messagesList { list-style-type: none; margin: 0; padding: 0;}
+#messagesList li { padding: 20px 10px; }
+#messagesList li:nth-child(odd) { background: #eee; }
+.closeChat{
+  display: none;
+}
+
+.containerMain{
+  margin-left: 80px;
+}
+.openChat{
+  display: hidden;
+}
+.displayNone{
+  display: none !important;
+}
+.displayb{
+  display: block !important;
+}
+.displayib{
+  display: inline-block !important;
+}
+
+@media screen and (max-width:420px){
+  .containerMain{
+    margin-left: 20px;
+    margin-right: 20px;
+  }
+  .roomMain{
+    margin-right: 0px; 
+    width: initial;
+    margin-bottom: 50px;
+  }
+  .roomChat {
+    border: 1px solid black;
+    display: inline-block;
+    position: fixed;
+    top: initial;
+    bottom: 0;
+    left: 0;
+    width: 200px;
+    height: 50%;
+    background: white;
+    display: none;
+  }
+  .messagesContainer{
+    height: 90%;
+  }
+  #messagesList li { padding: 10px 10px; font-size: 14px;}
+  .formChat {
+    display: flex;
+    flex-direction: row;
+    background: rgb(129, 129, 129);
+    padding: 0px;
+    position: fixed;
+    /* bottom: 0; */
+    width: 200px;
+  }
+  .formChat input {
+    padding: 10px 10px;
+    width: 150px;
+  }
+  .formChat button {
+    background: rgb(209, 49, 124);
+    border: 1px solid black;
+    width: 50px;
+  }
+  .openChat{
+    display: inline-block;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    background-color: rgb(209, 49, 124);
+    color: white;
+    width: 200px;
+    padding: 10px;
+    border-radius: 5px 5px 0 0;
+  }
+  .closeChat{
+    display: flex !important;
+    flex-direction: row;
+    justify-content: end;
+    /* align-items: flex-end; */
+    padding: 5px;
+    background-color: rgb(209, 49, 124);
+  }
+  .closeText{
+    margin: 0 !important;
+    display: inline-block;
+    /* text-align: end; */
+    color: white;
+    padding: 5px;
+    background-color: rgb(219, 82, 146);
+    border-radius: 5px;
+  }
+}

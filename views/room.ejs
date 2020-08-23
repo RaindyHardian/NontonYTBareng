@@ -16,62 +16,91 @@
 	</head>
 	<body>
 		<%- include('navbar.ejs'); %>
-		<div class="container-fluid mt-3" style="width:90%">
-			<!-- 1. The <iframe> (and video player) will replace this <div> tag. -->
-			<div id="stackFrame">
-				<div id="ytplayer"></div>
-			</div>
-			<div id="wrapProgress" class="mb-2 mt-1">
-				<div id="progress"></div>
-			</div>
-			<div class="d-block mb-2">
-				<button id="playControl" class="btn btn-primary">Play</button>
-				<button id="pauseControl" class="btn btn-danger mr-3">Pause</button>
-				<button id="draw" class="btn btn-outline-primary">Draw</button>
-				<button id="clear" class="btn btn-outline-danger">Clear</button>
-				<button id="close" class="btn btn-outline-dark">Close Drawing</button>
-			</div>
+		<div class="containerMain mt-3" >
+			<div class="roomFlex">
+				<div class="roomMain">	
+					<!-- 1. The <iframe> (and video player) will replace this <div> tag. -->
+					<div id="stackFrame">
+						<div id="ytplayer"></div>
+					</div>
+					<div id="wrapProgress" class="mb-2 mt-1">
+						<div id="progress"></div>
+					</div>
+					<div class="d-block mb-2">
+						<button id="playControl" class="btn btn-primary">Play</button>
+						<button id="pauseControl" class="btn btn-danger mr-3">Pause</button>
+						<button id="draw" class="btn btn-outline-primary">Draw</button>
+						<button id="clear" class="btn btn-outline-danger">Clear</button>
+						<button id="close" class="btn btn-outline-dark">Close Drawing</button>
+					</div>
+					<div class="form-group row">
+						<label for="staticEmail2" class="col-sm-1 col-form-label">Chat</label>
+						<div class="col-sm-3">
+							<input type="text" name="chatMessage" id="messageInput" class="form-control">
+						</div>
+						<div class="col-sm-2">
+							<button id="sendMessage" class="btn btn-outline-dark form-control">Send</button>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="staticEmail2" class="col-sm-1 col-form-label">Width</label>
+						<div class="col-sm-3">
+							<input type="text" name="width" id="widthPlayer" class="form-control" style="width:100px; display: inline-block">
+							<span>x <span id="heightPlayer"></span>pixel</span>
+						</div>
+						<div class="col-sm-2">
+							<button id="setSize" class="btn btn-outline-dark form-control">Apply</button>
+						</div>
+					</div>
+					
+					<div class="form-group row" >
+						<label for="staticEmail2" class="col-sm-1 col-form-label">Video ID</label>
+						<div class="col-sm-8">
+							<input type="text" name="youtubeUrl" id="youtubeUrl" class="form-control" placeholder="Youtube Video ID">
+						</div>
+						<div class="col-sm-2">
+							<button id="changeUrl" class="btn btn-outline-dark">Change</button>
+						</div>
+					</div>
+				
+						
+					<div class="form-group row">
+						
+						<label for="staticEmail2" class="col-sm-1 col-form-label">Room ID</label>
 
-			<div class="form-group row">
-				<label for="staticEmail2" class="col-sm-1 col-form-label">Width</label>
-				<div class="col-sm-3">
-					<input type="text" name="width" id="widthPlayer" class="form-control" style="width:100px; display: inline-block">
-					<span>x <span id="heightPlayer"></span>pixel</span>
+						<label for="staticEmail2" class="col-sm-5 col-form-label">
+							<div class="" id="roomIDShare"></div>
+						</label>
+						
+					</div>
+					<p>Users Active: <span id="numUser"></span></p>
+					<ul id="listUsers"></ul>
 				</div>
-				<div class="col-sm-2">
-					<button id="setSize" class="btn btn-outline-dark form-control">Apply</button>
+				<div class="roomChat" id="roomChat">
+					<div class="closeChat" id="closeChat">
+						<p class="closeText">close</p>
+					</div>
+					<div class="messagesContainer">
+						<ul id="messagesList"></ul>
+					</div>
+					<form action="" class="formChat" id="formChat">
+						<input id="m" autocomplete="off" placeholder="enter message" />
+						<button>Send</button>
+					</form>
+				</div>
+				<div class="openChat" id="openChat">
+					Open Chat
 				</div>
 			</div>
-			
-			<div class="form-group row" >
-				<label for="staticEmail2" class="col-sm-1 col-form-label">Video ID</label>
-				<div class="col-sm-8">
-					<input type="text" name="youtubeUrl" id="youtubeUrl" class="form-control" placeholder="Youtube Video ID">
-				</div>
-				<div class="col-sm-2">
-					<button id="changeUrl" class="btn btn-outline-dark">Change</button>
-				</div>
-			</div>
-		
-				
-			<div class="form-group row">
-				
-				<label for="staticEmail2" class="col-sm-1 col-form-label">Room ID</label>
-
-				<label for="staticEmail2" class="col-sm-5 col-form-label">
-					<div class="" id="roomIDShare"></div>
-				</label>
-				
-			</div>
-			<p>Users Active: <span id="numUser"></span></p>
-			<ul id="listUsers"></ul>
 		</div>
+
         <script src="js/jquery-3.4.0.min.js"></script>
 		<script src="/socket.io/socket.io.js"></script>
 		<script src="js/p5.min.js"></script>
         
         <script>
-            const socket = io();
+			const socket = io();
+			let username;
 			$.ajax({
 				url:"/datauser",
 				type:"get",
@@ -79,6 +108,7 @@
 				dataType:"JSON",
 				success: function(data){
 					$('#roomIDShare').text(data.id_share)
+					username = data.username
 					socket.emit('joinRoom', { 
 						id_user_room : data.id_user_room,
 						username : data.username,
@@ -86,12 +116,7 @@
 					})
 				}
 			});
-			// get youtube video id
-			let ytVideoID;
-			socket.on('ytvideoid',({videoID})=>{
-				ytVideoID=videoID;
-				player.cueVideoById(ytVideoID);
-			})
+			
             // Get room and users
             socket.on('roomUsers', ({users}) => {
             	// console.log("roomUsers: ");
@@ -189,7 +214,17 @@
 			function stopVideo() {
 				player.stopVideo();
 			}
-			
+
+			// get youtube video id
+			let ytVideoID;
+			socket.on('ytvideoid',({videoID})=>{
+				ytVideoID=videoID;
+				if(player){
+					// console.log("SUDAH READY")
+					player.cueVideoById(ytVideoID)
+				}
+			})
+
 			function updateProgress(){
 				setInterval(function(){
 					var x = (player.getCurrentTime()/player.getDuration())*100;
@@ -244,6 +279,29 @@
 			});
 			socket.on('changeUrl',x=>{
 				player.cueVideoById(x);
+			})
+			$("#formChat").submit(function(e){
+				e.preventDefault();
+				var msg = $("#m").val()
+				socket.emit('chatMessage',{username, message:msg})
+				$('#m').val('');
+			})
+			socket.on('chatMessage', ({username, message})=>{
+				console.log(username+" "+message)
+				$('#messagesList').append($('<li>').text(username+": "+message));
+				var scroll = document.getElementById("messagesList");
+				scroll.scrollIntoView(false);
+			})
+
+			$("#openChat").click(function(){
+				$('#openChat').addClass('displayNone');
+				$('#roomChat').addClass('displayib');
+				$('#closeChat').addClass('displayb');
+			})
+			$("#closeChat").click(function(){
+				$('#openChat').removeClass('displayNone');
+				$('#roomChat').removeClass('displayib');
+				$('#closeChat').removeClass('displayb');
 			})
 		</script>
 		<script src="js/sketch.js"></script>
