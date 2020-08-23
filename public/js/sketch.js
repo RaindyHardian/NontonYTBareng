@@ -59,7 +59,7 @@ function setup() {
     background('rgba(0,0,0, 0.1)');
   });
 }
-function mouseDragged(){
+function mouseDragged(e){
   // var c = document.getElementById("defaultCanvas0");
   // var ctx = c.getContext("2d");
   // console.log(width);
@@ -91,6 +91,7 @@ function mouseDragged(){
     fill(pen);
     circle(mouseX,mouseY,10);
     socket.emit('mouseDrawing', data);
+    e.preventDefault()
   }
 }
 function draw() {

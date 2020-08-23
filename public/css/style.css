@@ -102,7 +102,7 @@
   margin-left: 80px;
 }
 .openChat{
-  display: hidden;
+  display: none;
 }
 .displayNone{
   display: none !important;
@@ -131,13 +131,13 @@
     top: initial;
     bottom: 0;
     left: 0;
-    width: 200px;
+    width: 220px;
     height: 50%;
     background: white;
     display: none;
   }
   .messagesContainer{
-    height: 90%;
+    height: 75%;
   }
   #messagesList li { padding: 10px 10px; font-size: 14px;}
   .formChat {
@@ -147,11 +147,11 @@
     padding: 0px;
     position: fixed;
     /* bottom: 0; */
-    width: 200px;
+    width: 220px;
   }
   .formChat input {
     padding: 10px 10px;
-    width: 150px;
+    width: 170px;
   }
   .formChat button {
     background: rgb(209, 49, 124);
