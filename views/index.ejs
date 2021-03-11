@@ -1,76 +1,101 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">		
-		<meta http-equiv="X-UA-Compatible" content="ie=edge" />
-		<link
-			rel="stylesheet"
-			href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css"
-			integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk="
-			crossorigin="anonymous"
-		/>
-		<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" />
-		<link rel="stylesheet" href="css/style.css">
-		<title>Nonton Bareng</title>
-	</head>
-	<body>
-		<%- include('navbar.ejs'); %>
-		<div class="container mt-3">
-			<H1>CREATE ROOM</H1>
-			<div class="mb-1">
-				<button class="btn btn-secondary" id="getId">Generate Room ID</button>
-			</div>
-			<form action="/postCreateRoom" method="post">
-				<div class="form-group inputidcontainer">
-					<input type="text" name="id_share" id="textId" placeholder="Room ID"  class="form-control inputid" readonly>
-					<div class="btn btn-secondary ml-2" id="copyID">Copy</div> 
-				</div>
-				<div class="form-group">
-					<input type="text" name="username" id="Username" placeholder="Insert Username" class="form-control">
-				</div>
-				<div class="form-group">
-					<input type="text" name="yt_link" id="ytlink" placeholder="Insert youtube video ID" class="form-control">
-				</div>
-				<input type="submit" class="btn btn-primary" value="Create Room">
-			</form>
-			<H1 class="mt-3">JOIN ROOM</H1>
-			<form action="/postJoinRoom" method="post">
-				<div class="form-group">
-					<input type="text" name="id_share" id="textId" placeholder="Insert Room ID" class="form-control">
-				</div>
-				<div class="form-group">
-					<input type="text" name="username" id="Username" placeholder="Insert Username" class="form-control">
-				</div>
-				<input type="submit" class="btn btn-primary" value="Join Room">
-			</form>
-		</div>
-		<script src="js/jquery-3.4.0.min.js"></script>
-		<script src="/socket.io/socket.io.js"></script>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/node-uuid/1.4.8/uuid.min.js" integrity="sha512-rV0Q1QWodkoLjts/qP2XHtjvUPTmN46k4eH0lzOR3mDui8a0YnL/uqydipXA9mQ2wG6J4imL0BO6/26rcFho7Q==" crossorigin="anonymous"></script>
-		<script>
-			// import { uuid } from "uuidv4";
-			// const { uuid } = require('uuidv4');
-			// const socket = io();
-			// $("#getId").click(function(){
-			// 	console.log("clicked");
-			// 	// socket.emit('genId');
-			// 	$('#textId').val(uuid());
-			// });
-			// socket.on("genId", function(id){
-			// 	$('#textId').val(id);
-			// });
-		</script>
-		<script>
-			$("#getId").click(function(){
-				$('#textId').val(uuid());
-			});
-			$('#copyID').click(function(){
-				var copyText = document.getElementById("textId");
-				copyText.select();
-				copyText.setSelectionRange(0, 99999)
-				document.execCommand("copy");
-			})
-		</script>
-	</body>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css"
+      integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk="
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/style.css" />
+    <title>Nonton Bareng</title>
+  </head>
+  <body>
+    <%- include('navbar.ejs'); %>
+    <div class="container mt-3">
+      <H1>CREATE ROOM</H1>
+      <div class="mb-1">
+        <button class="btn btn-secondary" id="getId">Generate Room ID</button>
+      </div>
+      <form action="/postCreateRoom" method="post">
+        <div class="form-group inputidcontainer">
+          <input
+            type="text"
+            name="id_share"
+            id="textId"
+            placeholder="Room ID"
+            class="form-control inputid"
+            readonly
+          />
+          <div class="btn btn-secondary ml-2" id="copyID">Copy</div>
+        </div>
+        <div class="form-group">
+          <input
+            type="text"
+            name="username"
+            id="Username"
+            placeholder="Insert Username"
+            class="form-control"
+          />
+        </div>
+        <div class="form-group">
+          <input
+            type="text"
+            name="yt_link"
+            id="ytlink"
+            placeholder="Insert youtube video ID"
+            class="form-control"
+          />
+        </div>
+        <input type="submit" class="btn btn-primary" value="Create Room" />
+      </form>
+      <H1 class="mt-3">JOIN ROOM</H1>
+      <form action="/postJoinRoom" method="post">
+        <div class="form-group">
+          <input
+            type="text"
+            name="id_share"
+            id="textId"
+            placeholder="Insert Room ID"
+            class="form-control"
+          />
+        </div>
+        <div class="form-group">
+          <input
+            type="text"
+            name="username"
+            id="Username"
+            placeholder="Insert Username"
+            class="form-control"
+          />
+        </div>
+        <input type="submit" class="btn btn-primary" value="Join Room" />
+      </form>
+    </div>
+    <script src="js/jquery-3.4.0.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/node-uuid/1.4.8/uuid.min.js"
+      integrity="sha512-rV0Q1QWodkoLjts/qP2XHtjvUPTmN46k4eH0lzOR3mDui8a0YnL/uqydipXA9mQ2wG6J4imL0BO6/26rcFho7Q=="
+      crossorigin="anonymous"
+    ></script>
+    <script>
+      $("#getId").click(function () {
+        $("#textId").val(uuid());
+      });
+      $("#copyID").click(function () {
+        var copyText = document.getElementById("textId");
+        copyText.select();
+        copyText.setSelectionRange(0, 99999);
+        document.execCommand("copy");
+      });
+    </script>
+  </body>
 </html>
